@@ -85,16 +85,23 @@ npm run build:ext
 - Start and serve a local `iife` script
 
     ```bash
-    npm run dev:demo # Serving IIFE with auto rebuild at http://localhost:5174/page-agent.demo.js
+    npm run dev:demo # Serves demo IIFE + memory hub at http://localhost:5174/
     ```
+
+````
+
+- Demo script: `http://localhost:5174/page-agent.demo.js`
+- Memory hub (global cross-site storage): `http://localhost:5174/memory-hub.html`
 
 - Add a new bookmark
 
     ```javascript
-    javascript:(function(){var s=document.createElement('script');s.src=`http://localhost:5174/page-agent.demo.js?lang=en-US&t=${Math.random()}`;s.onload=()=>console.log(%27PageAgent ready!%27);document.head.appendChild(s);})();
+    javascript:(function(){var s=document.createElement('script');s.src='http://localhost:5174/page-agent.demo.js?lang=en-US&t='+Date.now();s.onload=function(){console.log('PageAgent ready!');};document.head.appendChild(s);})();
     ```
 
 - Click the bookmark on any page to load Page-Agent
+
+Knowledge saved via 📚 is shared across all sites through the memory hub (local dev) or the Page Agent extension (`chrome.storage`, if installed). Per-site fallback uses localStorage only when neither is available.
 
 > Warning: AK in your local `.env` will be inlined in the iife script. Be very careful when you distribute the script.
 
@@ -103,3 +110,4 @@ npm run build:ext
 Ask an AI to help you add documentation to the `website/` package. Follow the existing style.
 
 > Our AGENTS.md file and guardrails are designed for this purpose. But please be careful and review anything AI generated.
+````

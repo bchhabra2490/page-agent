@@ -16,6 +16,7 @@
     },
     "include": [
         "packages/llms/src/**/*",
+        "packages/memory/src/**/*",
         "packages/page-controller/src/**/*",
         "packages/ui/src/**/*",
         "packages/core/src/**/*",

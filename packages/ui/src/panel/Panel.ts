@@ -15,6 +15,8 @@ export interface PanelConfig {
 	 * @default true
 	 */
 	promptForNextTask?: boolean
+	/** Opens the user knowledge manager when the 📚 control is clicked */
+	onKnowledgeClick?: () => void
 }
 
 /**
@@ -33,6 +35,7 @@ export class Panel {
 	#statusText: HTMLElement
 	#historySection: HTMLElement
 	#expandButton: HTMLElement
+	#knowledgeButton: HTMLElement | null = null
 	#actionButton: HTMLElement
 	#inputSection: HTMLElement
 	#taskInput: HTMLInputElement
@@ -76,6 +79,7 @@ export class Panel {
 		this.#statusText = this.#wrapper.querySelector(`.${styles.statusText}`)!
 		this.#historySection = this.#wrapper.querySelector(`.${styles.historySection}`)!
 		this.#expandButton = this.#wrapper.querySelector(`.${styles.expandButton}`)!
+		this.#knowledgeButton = this.#wrapper.querySelector(`.${styles.knowledgeButton}`)
 		this.#actionButton = this.#wrapper.querySelector(`.${styles.stopButton}`)!
 		this.#inputSection = this.#wrapper.querySelector(`.${styles.inputSectionWrapper}`)!
 		this.#taskInput = this.#wrapper.querySelector(`.${styles.taskInput}`)!
@@ -91,7 +95,12 @@ export class Panel {
 
 		this.#showInputArea()
 
-		this.hide() // Start hidden
+		// Keep task bar visible when knowledge is enabled so users can edit info before a task
+		if (config.onKnowledgeClick) {
+			this.show()
+		} else {
+			this.hide()
+		}
 	}
 
 	// ========== Agent event handlers ==========
@@ -291,6 +300,10 @@ export class Panel {
 				return this.#i18n.t('ui.tools.askingUser')
 			case 'done':
 				return this.#i18n.t('ui.tools.done')
+			case 'lookup_user_data':
+				return this.#i18n.t('ui.tools.lookupUserData')
+			case 'generate_answer':
+				return this.#i18n.t('ui.tools.generateAnswer')
 			default:
 				return this.#i18n.t('ui.tools.executing', { toolName })
 		}
@@ -412,6 +425,11 @@ export class Panel {
 					<div class="${styles.statusText}">${this.#i18n.t('ui.panel.ready')}</div>
 				</div>
 				<div class="${styles.controls}">
+					${
+						this.#config.onKnowledgeClick
+							? `<button type="button" class="${styles.controlButton} ${styles.knowledgeButton}" title="${this.#i18n.t('ui.panel.knowledge')}">📚</button>`
+							: ''
+					}
 					<button class="${styles.controlButton} ${styles.expandButton}" title="${this.#i18n.t('ui.panel.expand')}">
 						▼
 					</button>
@@ -450,6 +468,11 @@ export class Panel {
 		this.#expandButton.addEventListener('click', (e) => {
 			e.stopPropagation()
 			this.#toggle()
+		})
+
+		this.#knowledgeButton?.addEventListener('click', (e) => {
+			e.stopPropagation()
+			this.#config.onKnowledgeClick?.()
 		})
 
 		// Action button (stop / close)

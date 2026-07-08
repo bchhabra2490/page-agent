@@ -209,6 +209,15 @@
 			}
 		}
 
+		.knowledgeButton {
+			font-size: 14px;
+			background: rgba(189, 69, 251, 0.2);
+
+			&:hover {
+				background: rgba(189, 69, 251, 0.35);
+			}
+		}
+
 		.stopButton {
 			background: rgba(239, 68, 68, 0.2);
 			color: rgb(255, 41, 41);

@@ -4,6 +4,7 @@ import { Route, Switch, useLocation } from 'wouter'
 import Footer from './components/Footer'
 import Header from './components/Header'
 import HomePage from './pages/home'
+import JobApplicationTestPage from './pages/test/job-application'
 
 const docsImport = () => import('./pages/docs')
 const DocsPages = lazy(docsImport)
@@ -28,7 +29,9 @@ export default function Router() {
 
 	return (
 		<div className="flex min-h-screen flex-col">
-			<Header />
+			<div id="site-chrome">
+				<Header />
+			</div>
 			<Suspense>
 				<ScrollToTop />
 				<Switch>
@@ -38,6 +41,15 @@ export default function Router() {
 							className="flex-1 bg-linear-to-br from-blue-50 to-purple-50 dark:from-gray-900 dark:to-gray-800"
 						>
 							<HomePage />
+						</main>
+					</Route>
+
+					<Route path="/test/job-application">
+						<main
+							id="main-content"
+							className="flex-1 bg-linear-to-br from-slate-50 to-blue-50 dark:from-gray-900 dark:to-gray-800"
+						>
+							<JobApplicationTestPage />
 						</main>
 					</Route>
 

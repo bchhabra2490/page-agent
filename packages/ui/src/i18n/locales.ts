@@ -15,6 +15,7 @@ const enUS = {
 			close: 'Close',
 			expand: 'Expand history',
 			collapse: 'Collapse history',
+			knowledge: 'Manage saved info for form filling',
 			step: 'Step {{number}}',
 		},
 		tools: {
@@ -25,6 +26,8 @@ const enUS = {
 			waiting: 'Waiting {{seconds}} seconds...',
 			askingUser: 'Asking user...',
 			done: 'Task done',
+			lookupUserData: 'Looking up saved info...',
+			generateAnswer: 'Generating answer...',
 			clicked: '🖱️ Clicked element [{{index}}]',
 			inputted: '⌨️ Inputted text "{{text}}"',
 			selected: '☑️ Selected option "{{text}}"',
@@ -63,6 +66,7 @@ const zhCN = {
 			close: '关闭',
 			expand: '展开历史',
 			collapse: '收起历史',
+			knowledge: '管理表单填写用的个人信息',
 			step: '步骤 {{number}}',
 		},
 		tools: {
@@ -73,6 +77,8 @@ const zhCN = {
 			waiting: '等待 {{seconds}} 秒...',
 			askingUser: '正在询问用户...',
 			done: '结束任务',
+			lookupUserData: '正在查找已保存的信息...',
+			generateAnswer: '正在生成回答...',
 			clicked: '🖱️ 已点击元素 [{{index}}]',
 			inputted: '⌨️ 已输入文本 "{{text}}"',
 			selected: '☑️ 已选择选项 "{{text}}"',

@@ -34,13 +34,14 @@ if (autoInit) {
 			const apiKey = url.searchParams.get('apiKey') || DEMO_API_KEY
 			const language = (url.searchParams.get('lang') as 'zh-CN' | 'en-US') || 'zh-CN'
 			showPanel = ((url.searchParams.get('showPanel') as 'true' | 'false') || 'true') === 'true'
-			config = { model, baseURL, apiKey, language }
+			config = { model, baseURL, apiKey, language, memory: true }
 		} else {
 			console.log('🚀 page-agent.js no current script detected, using default demo config')
 			config = {
 				model: import.meta.env.LLM_MODEL_NAME ? import.meta.env.LLM_MODEL_NAME : DEMO_MODEL,
 				baseURL: import.meta.env.LLM_BASE_URL ? import.meta.env.LLM_BASE_URL : DEMO_BASE_URL,
 				apiKey: import.meta.env.LLM_API_KEY ? import.meta.env.LLM_API_KEY : DEMO_API_KEY,
+				memory: true,
 			}
 		}
 

@@ -1,0 +1,59 @@
+{
+    "name": "@page-agent/memory",
+    "private": false,
+    "version": "1.11.0",
+    "type": "module",
+    "main": "./src/index.ts",
+    "types": "./src/index.ts",
+    "exports": {
+        ".": {
+            "types": "./src/index.ts",
+            "default": "./src/index.ts"
+        }
+    },
+    "publishConfig": {
+        "main": "./dist/esm/page-agent-memory.js",
+        "module": "./dist/esm/page-agent-memory.js",
+        "types": "./dist/esm/index.d.ts",
+        "exports": {
+            ".": {
+                "types": "./dist/esm/index.d.ts",
+                "import": "./dist/esm/page-agent-memory.js",
+                "default": "./dist/esm/page-agent-memory.js"
+            }
+        }
+    },
+    "files": [
+        "dist/"
+    ],
+    "description": "User knowledge store and agent tools for Page Agent",
+    "keywords": [
+        "page-agent",
+        "memory",
+        "knowledge-base"
+    ],
+    "author": "Simon<gaomeng1900>",
+    "license": "MIT",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/alibaba/page-agent.git",
+        "directory": "packages/memory"
+    },
+    "homepage": "https://alibaba.github.io/page-agent/",
+    "scripts": {
+        "build": "vite build",
+        "test": "vitest run",
+        "prepublishOnly": "node ../../scripts/pre-publish.js",
+        "postpublish": "node ../../scripts/post-publish.js"
+    },
+    "dependencies": {
+        "@page-agent/core": "1.11.0",
+        "@page-agent/llms": "1.11.0"
+    },
+    "peerDependencies": {
+        "zod": "^3.25.0 || ^4.0.0"
+    },
+    "devDependencies": {
+        "zod": "^4.4.3"
+    }
+}

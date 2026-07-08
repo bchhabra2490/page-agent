@@ -1,5 +1,6 @@
 // @ts-check
 import { config as dotenvConfig } from 'dotenv'
+import { copyFileSync } from 'node:fs'
 import { dirname, resolve } from 'path'
 import { fileURLToPath } from 'url'
 import { defineConfig } from 'vite'
@@ -10,6 +11,18 @@ const __dirname = dirname(fileURLToPath(import.meta.url))
 // Load .env from repo root
 dotenvConfig({ path: resolve(__dirname, '../../.env'), quiet: true })
 
+function copyMemoryHub() {
+	return {
+		name: 'copy-memory-hub',
+		closeBundle() {
+			copyFileSync(
+				resolve(__dirname, 'memory-hub.html'),
+				resolve(__dirname, 'dist/iife/memory-hub.html')
+			)
+		},
+	}
+}
+
 // UMD Bundle for CDN
 // - alias all local packages so that they can be build in
 // - no external
@@ -17,6 +30,7 @@ dotenvConfig({ path: resolve(__dirname, '../../.env'), quiet: true })
 export default defineConfig(() => ({
 	plugins: [
 		cssInjectedByJsPlugin({ relativeCSSInjection: true }),
+		copyMemoryHub(),
 		// analyzer()
 	],
 	publicDir: false,

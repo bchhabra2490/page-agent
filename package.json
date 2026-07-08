@@ -7,6 +7,7 @@
         "packages/page-controller",
         "packages/ui",
         "packages/llms",
+        "packages/memory",
         "packages/core",
         "packages/page-agent",
         "packages/mcp",

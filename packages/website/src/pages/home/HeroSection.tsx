@@ -79,6 +79,7 @@ export default function HeroSection() {
 			win.pageAgent = new (PageAgent as typeof PageAgentType)({
 				interactiveBlacklist: [document.getElementById('root')!],
 				language: language,
+				memory: true,
 
 				instructions: {
 					system: 'You are a helpful assistant on PageAgent website.',

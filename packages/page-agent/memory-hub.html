@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<title>Page Agent Memory Hub</title>
+	</head>
+	<body>
+		<script>
+			const STORAGE_PREFIX = 'page-agent-knowledge-hub:'
+
+			function loadEntries(key) {
+				try {
+					const raw = localStorage.getItem(STORAGE_PREFIX + key)
+					if (!raw) return []
+					const parsed = JSON.parse(raw)
+					return Array.isArray(parsed) ? parsed : []
+				} catch {
+					return []
+				}
+			}
+
+			function saveEntries(key, entries) {
+				localStorage.setItem(STORAGE_PREFIX + key, JSON.stringify(entries))
+			}
+
+			window.addEventListener('message', (event) => {
+				const data = event.data
+				if (!data || typeof data !== 'object' || !data.requestId) return
+
+				const reply = (payload) => {
+					event.source?.postMessage({ ...payload, requestId: data.requestId }, event.origin || '*')
+				}
+
+				try {
+					if (data.type === 'load') {
+						reply({ type: 'load_result', key: data.key, entries: loadEntries(data.key) })
+					} else if (data.type === 'save') {
+						saveEntries(data.key, data.entries || [])
+						reply({ type: 'save_result', key: data.key, ok: true })
+					}
+				} catch (error) {
+					reply({ type: 'save_result', key: data.key, ok: false, error: String(error) })
+				}
+			})
+
+			window.parent.postMessage({ type: 'ready' }, '*')
+		</script>
+	</body>
+</html>

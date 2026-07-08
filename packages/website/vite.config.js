@@ -35,6 +35,7 @@ const SPA_ROUTES = [
 	'docs/advanced/page-controller',
 	'docs/advanced/custom-ui',
 	'docs/advanced/security-permissions',
+	'test/job-application',
 ]
 
 const SITE_URL = 'https://alibaba.github.io/page-agent'
