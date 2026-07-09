@@ -16,6 +16,11 @@ const enUS = {
 			expand: 'Expand history',
 			collapse: 'Collapse history',
 			knowledge: 'Manage saved info for form filling',
+			speechInput: 'Speech to text',
+			speechStop: 'Stop listening',
+			recordStart: 'Record clicks on this page',
+			recordStop: 'Stop recording and save workflow',
+			recordSteps: 'Recorded {{count}} step(s)',
 			step: 'Step {{number}}',
 		},
 		tools: {
@@ -67,6 +72,11 @@ const zhCN = {
 			expand: '展开历史',
 			collapse: '收起历史',
 			knowledge: '管理表单填写用的个人信息',
+			speechInput: '语音输入',
+			speechStop: '停止聆听',
+			recordStart: '录制本页点击步骤',
+			recordStop: '停止录制并保存流程',
+			recordSteps: '已录制 {{count}} 步',
 			step: '步骤 {{number}}',
 		},
 		tools: {

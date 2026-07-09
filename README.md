@@ -16,6 +16,8 @@
 
 The GUI Agent Living in Your Webpage. One script gives any web page its own AI agent.
 
+> **Fork notice:** This repository is a fork of [alibaba/page-agent](https://github.com/alibaba/page-agent). It adds **Memory** (saved user knowledge for form filling), **Speech-to-Text (STT)** (voice input in the panel), and **Workflow Recording** (record clicks per URL as LLM context).
+
 <a href="https://trendshift.io/repositories/22551?utm_source=repository-badge&amp;utm_medium=badge&amp;utm_campaign=badge-repository-22551" target="_blank" rel="noopener noreferrer"><img src="https://trendshift.io/api/badge/repositories/22551" alt="alibaba%2Fpage-agent | Trendshift" width="180"/></a>
 
 🌐 **English** | [中文](./docs/README-zh.md)
@@ -37,14 +39,21 @@ The GUI Agent Living in Your Webpage. One script gives any web page its own AI a
     - No screenshots. No multi-modal LLMs or special permissions needed.
 - **🧠 Bring your own LLMs**
     - Works with most mainstream models, including locally deployed ones. See [supported models](https://alibaba.github.io/page-agent/docs/features/models).
+- **📚 User Memory** _(fork addition)_
+    - Save profile facts and documents once. The agent uses `lookup_user_data` for factual fields and `generate_answer` for open-ended prompts like cover letters or motivation statements.
+    - Manage entries from the 📚 button on the panel task bar. Enable with `memory: true` on `PageAgent`.
+- **🎤 Speech-to-Text** _(fork addition)_
+    - Dictate tasks from the panel input bar using the browser Web Speech API (🎤 button).
+- **⏺ Workflow Recording** _(fork addition)_
+    - Record your click path on a page with the ⏺ button. Steps are saved per URL and injected as LLM context on future tasks. Enable with `recording: true`.
 - **🐙 Optional [chrome extension](https://alibaba.github.io/page-agent/docs/features/chrome-extension) for multi-page tasks.**
     - And an [MCP Server (Beta)](https://alibaba.github.io/page-agent/docs/features/mcp-server) to control it from outside
 
 ## 💡 Use Cases
 
 - **SaaS AI Copilot** — Ship an AI copilot in your product in lines of code. No backend rewrite.
-- **Smart Form Filling** — Turn 20-click workflows into one sentence. Perfect for ERP, CRM, and admin systems.
-- **Accessibility** — Make any web app accessible through natural language. Voice commands, screen readers, zero barrier.
+- **Smart Form Filling** — Turn 20-click workflows into one sentence. Perfect for ERP, CRM, and admin systems. With Memory enabled, reuse saved profile data across any site.
+- **Accessibility** — Make any web app accessible through natural language. Voice commands via STT, screen readers, zero barrier.
 - **Multi-page Agent** — Extend your own web agent's reach across browser tabs via the [Chrome extension](https://alibaba.github.io/page-agent/docs/features/chrome-extension).
 - **MCP** - Allow your agent clients to control your browser.
 
@@ -80,14 +89,17 @@ npm install page-agent
 import { PageAgent } from 'page-agent'
 
 const agent = new PageAgent({
-    model: 'qwen3.5-plus',
-    baseURL: 'https://dashscope.aliyuncs.com/compatible-mode/v1',
+    model: 'gpt-4o',
+    baseURL: 'https://api.openai.com/v1',
     apiKey: 'YOUR_API_KEY',
     language: 'en-US',
+    memory: true, // fork: enable user knowledge store + lookup/generate tools
 })
 
 await agent.execute('Click the login button')
 ```
+
+For local development, copy `.env.example` to `.env` and set `LLM_MODEL_NAME`, `LLM_BASE_URL`, and `LLM_API_KEY`. See [docs/developer-guide.md](docs/developer-guide.md).
 
 For more programmatic usage, see [📖 Documentations](https://alibaba.github.io/page-agent/docs/introduction/overview).
 
@@ -107,7 +119,7 @@ Contributions generated entirely by **bots or AI** without substantial human inv
 
 ## 👏 Acknowledgments
 
-This project builds upon the excellent work of **[`browser-use`](https://github.com/browser-use/browser-use)**.
+This project is a fork of **[Page Agent](https://github.com/alibaba/page-agent)** by Alibaba, and builds upon the excellent work of **[`browser-use`](https://github.com/browser-use/browser-use)**.
 
 `PageAgent` is designed for **client-side web enhancement**, not server-side automation.
 

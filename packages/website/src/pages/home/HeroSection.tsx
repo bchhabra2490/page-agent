@@ -1,3 +1,4 @@
+import { llmConfigMatches, resolveLLMConfig } from '@page-agent/llms'
 import type { PageAgent as PageAgentType } from 'page-agent'
 import { useEffect, useState } from 'react'
 import { Link, useSearchParams } from 'wouter'
@@ -6,13 +7,7 @@ import { AnimatedGradientText } from '../../components/ui/animated-gradient-text
 import { Highlighter } from '../../components/ui/highlighter'
 import { NeonGradientCard } from '../../components/ui/neon-gradient-card'
 import { Particles } from '../../components/ui/particles'
-import {
-	CDN_DEMO_CN_URL,
-	CDN_DEMO_URL,
-	// DEMO_API_KEY,
-	DEMO_BASE_URL,
-	DEMO_MODEL,
-} from '../../constants'
+import { CDN_DEMO_CN_URL, CDN_DEMO_URL } from '../../constants'
 import { useLanguage } from '../../i18n/context'
 
 let pageAgentModule: Promise<typeof import('page-agent')> | null = null
@@ -75,31 +70,36 @@ export default function HeroSection() {
 		const { PageAgent } = await pageAgentModule
 		const win = window as any
 
-		if (!win.pageAgent || win.pageAgent.disposed) {
+		let llmConfig
+		try {
+			llmConfig = resolveLLMConfig()
+		} catch (error) {
+			console.error('[PageAgent]', error)
+			alert(
+				isZh
+					? '请在仓库根目录 .env 中配置 LLM_MODEL_NAME、LLM_BASE_URL、LLM_API_KEY，然后重启 npm start。'
+					: 'Set LLM_MODEL_NAME, LLM_BASE_URL, and LLM_API_KEY in the repo root .env file, then restart npm start.'
+			)
+			return
+		}
+
+		if (
+			!win.pageAgent ||
+			win.pageAgent.disposed ||
+			!llmConfigMatches(win.pageAgent.config, llmConfig)
+		) {
+			win.pageAgent?.dispose()
 			win.pageAgent = new (PageAgent as typeof PageAgentType)({
 				interactiveBlacklist: [document.getElementById('root')!],
 				language: language,
 				memory: true,
-
 				instructions: {
 					system: 'You are a helpful assistant on PageAgent website.',
 					getPageInstructions: (url: string) => {
 						return url.includes('page-agent') ? 'This is PageAgent demo page.' : undefined
 					},
 				},
-
-				model:
-					import.meta.env.DEV && import.meta.env.LLM_MODEL_NAME
-						? import.meta.env.LLM_MODEL_NAME
-						: DEMO_MODEL,
-				baseURL:
-					import.meta.env.DEV && import.meta.env.LLM_BASE_URL
-						? import.meta.env.LLM_BASE_URL
-						: DEMO_BASE_URL,
-				apiKey:
-					import.meta.env.DEV && import.meta.env.LLM_API_KEY
-						? import.meta.env.LLM_API_KEY
-						: undefined,
+				...llmConfig,
 			})
 		}
 

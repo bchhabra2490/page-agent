@@ -50,7 +50,11 @@ If your AI assistant does not support [AGENTS.md](https://agents.md/). Add an al
 
 ### Test With Your Own LLM API
 
-- Create a `.env` file in the repo root with your LLM API config
+- Create a `.env` file in the repo root with your LLM API config (copy from `.env.example`):
+
+    ```bash
+    cp .env.example .env
+    ```
 
     ```env
     LLM_MODEL_NAME=gpt-5.2

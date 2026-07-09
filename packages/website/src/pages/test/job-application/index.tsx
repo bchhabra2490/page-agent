@@ -1,8 +1,8 @@
+import { llmConfigMatches, resolveLLMConfig } from '@page-agent/llms'
 import type { PageAgent as PageAgentType } from 'page-agent'
 import { useEffect, useState } from 'react'
 import { Link } from 'wouter'
 
-import { DEMO_BASE_URL, DEMO_MODEL } from '@/constants'
 import { useLanguage } from '@/i18n/context'
 
 const SAMPLE_TASKS = {
@@ -23,6 +23,7 @@ let pageAgentModule: Promise<typeof import('page-agent')> | null = null
 export default function JobApplicationTestPage() {
 	const { language, isZh } = useLanguage()
 	const [ready, setReady] = useState(false)
+	const [configError, setConfigError] = useState<string | null>(null)
 	const [running, setRunning] = useState(false)
 
 	const sampleTasks = SAMPLE_TASKS[language]
@@ -31,14 +32,30 @@ export default function JobApplicationTestPage() {
 		pageAgentModule ??= import('page-agent')
 		pageAgentModule.then(async ({ PageAgent }) => {
 			const win = window as Window & { pageAgent?: PageAgentType }
-			if (win.pageAgent && !win.pageAgent.disposed) {
+
+			let llmConfig
+			try {
+				llmConfig = resolveLLMConfig()
+			} catch (error) {
+				setConfigError(error instanceof Error ? error.message : String(error))
+				return
+			}
+
+			if (
+				win.pageAgent &&
+				!win.pageAgent.disposed &&
+				llmConfigMatches(win.pageAgent.config, llmConfig)
+			) {
 				setReady(true)
 				return
 			}
 
+			win.pageAgent?.dispose()
+
 			win.pageAgent = new PageAgent({
 				language,
 				memory: true,
+				recording: true,
 				interactiveBlacklist: [document.getElementById('site-chrome')!].filter(Boolean),
 				instructions: {
 					system: 'You are helping the user complete a job application on a test page.',
@@ -48,18 +65,7 @@ Company context: Acme Corp builds developer tools and open-source UI automation.
 For factual fields use lookup_user_data. For the motivation textarea use generate_answer with company_or_context "Acme Corp — Senior Frontend Engineer".
 Never submit the form unless the user explicitly asks.`,
 				},
-				model:
-					import.meta.env.DEV && import.meta.env.LLM_MODEL_NAME
-						? import.meta.env.LLM_MODEL_NAME
-						: DEMO_MODEL,
-				baseURL:
-					import.meta.env.DEV && import.meta.env.LLM_BASE_URL
-						? import.meta.env.LLM_BASE_URL
-						: DEMO_BASE_URL,
-				apiKey:
-					import.meta.env.DEV && import.meta.env.LLM_API_KEY
-						? import.meta.env.LLM_API_KEY
-						: undefined,
+				...llmConfig,
 			})
 
 			setReady(true)
@@ -92,6 +98,12 @@ Never submit the form unless the user explicitly asks.`,
 						: 'Add your info via 📚 on the task bar, then run a sample task below or type a command in the panel.'}
 				</p>
 			</div>
+
+			{configError && (
+				<div className="mb-6 rounded-lg border border-red-300 bg-red-50 px-4 py-3 text-sm text-red-800 dark:border-red-800 dark:bg-red-950 dark:text-red-200">
+					{configError}
+				</div>
+			)}
 
 			<article className="mb-8 rounded-xl border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-700 dark:bg-gray-800">
 				<p className="text-xs font-semibold uppercase tracking-wide text-purple-600 dark:text-purple-400">

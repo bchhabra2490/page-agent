@@ -1,5 +1,6 @@
 import { I18n, type SupportedLanguage } from '../i18n'
 import { truncate } from '../utils'
+import { SpeechInput, isSpeechRecognitionSupported } from './SpeechInput'
 import { createCard, createReflectionLines } from './cards'
 import type { AgentActivity, PanelAgentAdapter } from './types'
 
@@ -17,6 +18,8 @@ export interface PanelConfig {
 	promptForNextTask?: boolean
 	/** Opens the user knowledge manager when the 📚 control is clicked */
 	onKnowledgeClick?: () => void
+	/** Toggle workflow recording when the ⏺ control is clicked */
+	onRecordingToggle?: () => void
 }
 
 /**
@@ -39,6 +42,10 @@ export class Panel {
 	#actionButton: HTMLElement
 	#inputSection: HTMLElement
 	#taskInput: HTMLInputElement
+	#speechButton: HTMLButtonElement | null = null
+	#recordButton: HTMLButtonElement | null = null
+	#speechInput: SpeechInput | null = null
+	#isRecording = false
 
 	#agent: PanelAgentAdapter
 	#config: PanelConfig
@@ -83,6 +90,10 @@ export class Panel {
 		this.#actionButton = this.#wrapper.querySelector(`.${styles.stopButton}`)!
 		this.#inputSection = this.#wrapper.querySelector(`.${styles.inputSectionWrapper}`)!
 		this.#taskInput = this.#wrapper.querySelector(`.${styles.taskInput}`)!
+		this.#speechButton = this.#wrapper.querySelector(`.${styles.speechButton}`)
+		this.#recordButton = this.#wrapper.querySelector(`.${styles.recordButton}`)
+
+		this.#initSpeechInput()
 
 		// Listen to agent events
 		this.#agent.addEventListener('statuschange', this.#onStatusChange)
@@ -96,11 +107,30 @@ export class Panel {
 		this.#showInputArea()
 
 		// Keep task bar visible when knowledge is enabled so users can edit info before a task
-		if (config.onKnowledgeClick) {
+		if (config.onKnowledgeClick || config.onRecordingToggle) {
 			this.show()
 		} else {
 			this.hide()
 		}
+	}
+
+	/** Update record button state from the agent. */
+	setRecordingActive(active: boolean): void {
+		this.#isRecording = active
+		if (this.#recordButton) {
+			this.#recordButton.dataset.recording = active ? 'true' : ''
+			this.#recordButton.title = active
+				? this.#i18n.t('ui.panel.recordStop')
+				: this.#i18n.t('ui.panel.recordStart')
+		}
+	}
+
+	get isRecording(): boolean {
+		return this.#isRecording
+	}
+
+	stopSpeechInput(): void {
+		this.#speechInput?.stop()
 	}
 
 	// ========== Agent event handlers ==========
@@ -278,6 +308,7 @@ export class Panel {
 		// Clean up UI
 		this.#isWaitingForUserAnswer = false
 		this.#stopHeaderUpdateLoop()
+		this.#speechInput?.dispose()
 		this.wrapper.remove()
 	}
 
@@ -324,6 +355,7 @@ export class Panel {
 	 * Submit task
 	 */
 	#submitTask() {
+		this.#speechInput?.stop()
 		const input = this.#taskInput.value.trim()
 		if (!input) return
 
@@ -373,6 +405,7 @@ export class Panel {
 	 * Hide input area
 	 */
 	#hideInputArea(): void {
+		this.#speechInput?.stop()
 		this.#inputSection.classList.add(styles.hidden)
 	}
 
@@ -406,6 +439,7 @@ export class Panel {
 		wrapper.className = styles.wrapper
 		wrapper.setAttribute('data-browser-use-ignore', 'true')
 		wrapper.setAttribute('data-page-agent-ignore', 'true')
+		wrapper.setAttribute('data-page-agent-not-interactive', 'true')
 
 		wrapper.innerHTML = `
 			<div class="${styles.background}"></div>
@@ -445,6 +479,16 @@ export class Panel {
 						class="${styles.taskInput}" 
 						maxlength="${taskInputMaxLength}"
 					/>
+					${
+						this.#config.onRecordingToggle
+							? `<button type="button" class="${styles.recordButton}" title="${this.#i18n.t('ui.panel.recordStart')}" aria-label="${this.#i18n.t('ui.panel.recordStart')}">⏺</button>`
+							: ''
+					}
+					${
+						isSpeechRecognitionSupported()
+							? `<button type="button" class="${styles.speechButton}" title="${this.#i18n.t('ui.panel.speechInput')}" aria-label="${this.#i18n.t('ui.panel.speechInput')}">🎤</button>`
+							: ''
+					}
 				</div>
 			</div>
 		`
@@ -494,6 +538,52 @@ export class Panel {
 		this.#inputSection.addEventListener('click', (e) => {
 			e.stopPropagation()
 		})
+
+		this.#speechButton?.addEventListener('click', (e) => {
+			e.stopPropagation()
+			this.#toggleSpeech()
+		})
+
+		this.#recordButton?.addEventListener('click', (e) => {
+			e.stopPropagation()
+			this.#config.onRecordingToggle?.()
+		})
+	}
+
+	#initSpeechInput(): void {
+		if (!this.#speechButton || !isSpeechRecognitionSupported()) return
+
+		const language = this.#config.language ?? 'en-US'
+		this.#speechInput = new SpeechInput({
+			language,
+			onTranscript: (text) => {
+				this.#taskInput.value = text.slice(0, 1000)
+			},
+			onStateChange: (listening) => {
+				if (this.#speechButton) {
+					this.#speechButton.dataset.listening = listening ? 'true' : ''
+				}
+				this.#speechButton!.title = listening
+					? this.#i18n.t('ui.panel.speechStop')
+					: this.#i18n.t('ui.panel.speechInput')
+			},
+			onError: (error) => {
+				console.warn('[PageAgent Panel] Speech recognition error:', error)
+				this.#speechButton!.title = this.#i18n.t('ui.panel.speechInput')
+			},
+		})
+	}
+
+	#toggleSpeech(): void {
+		if (!this.#speechInput || !this.#speechButton) return
+
+		if (this.#speechInput.listening) {
+			this.#speechInput.stop()
+			return
+		}
+
+		this.#speechInput.start(this.#taskInput.value.trim())
+		this.#taskInput.focus()
 	}
 
 	#toggle(): void {

@@ -606,5 +606,69 @@
 				box-shadow: 0 0 0 2px rgba(57, 182, 255, 0.2);
 			}
 		}
+
+		.speechButton {
+			flex-shrink: 0;
+			width: 28px;
+			height: 28px;
+			border: 1px solid rgba(255, 255, 255, 0.35);
+			border-radius: 8px;
+			background: rgba(255, 255, 255, 0.35);
+			color: rgb(30, 30, 30);
+			font-size: 14px;
+			line-height: 1;
+			cursor: pointer;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			transition: all 0.2s ease;
+
+			&:hover {
+				background: rgba(255, 255, 255, 0.55);
+			}
+
+			&[data-listening='true'] {
+				background: rgba(239, 68, 68, 0.25);
+				border-color: rgba(239, 68, 68, 0.5);
+				animation: speechPulse 1.2s ease-in-out infinite;
+			}
+		}
+
+		.recordButton {
+			flex-shrink: 0;
+			width: 28px;
+			height: 28px;
+			border: 1px solid rgba(255, 255, 255, 0.35);
+			border-radius: 8px;
+			background: rgba(255, 255, 255, 0.35);
+			color: rgb(30, 30, 30);
+			font-size: 12px;
+			line-height: 1;
+			cursor: pointer;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			transition: all 0.2s ease;
+
+			&:hover {
+				background: rgba(255, 255, 255, 0.55);
+			}
+
+			&[data-recording='true'] {
+				background: rgba(239, 68, 68, 0.25);
+				border-color: rgba(239, 68, 68, 0.5);
+				animation: speechPulse 1.2s ease-in-out infinite;
+			}
+		}
+	}
+}
+
+@keyframes speechPulse {
+	0%,
+	100% {
+		box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.35);
+	}
+	50% {
+		box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.15);
 	}
 }

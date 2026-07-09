@@ -239,6 +239,28 @@ export class PageController extends EventTarget {
 	}
 
 	/**
+	 * Map a clicked DOM node to the nearest indexed interactive element.
+	 */
+	resolveElementIndex(target: Element): { index: number; label: string } | null {
+		this.assertIndexed()
+
+		let current: Element | null = target
+		while (current) {
+			for (const [index, node] of this.selectorMap) {
+				if (node.ref === current) {
+					return {
+						index,
+						label: this.elementTextMap.get(index) ?? `element ${index}`,
+					}
+				}
+			}
+			current = current.parentElement
+		}
+
+		return null
+	}
+
+	/**
 	 * Click element by index
 	 */
 	async clickElement(index: number): Promise<ActionResult> {

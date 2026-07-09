@@ -1,6 +1,8 @@
 /**
- * IIFE demo entry - auto-initializes with built-in demo API for testing
+ * IIFE demo entry - auto-initializes with LLM config from .env (baked in at build time)
  */
+import { resolveLLMConfig } from '@page-agent/llms'
+
 import { PageAgent, type PageAgentConfig } from './PageAgent'
 
 const currentScript = document.currentScript as HTMLScriptElement | null
@@ -17,40 +19,27 @@ window.PageAgent = PageAgent
 
 console.log('🚀 page-agent.js loaded!')
 
-const DEMO_MODEL = 'qwen3.5-plus'
-const DEMO_BASE_URL = 'https://page-ag-testing-ohftxirgbn.cn-shanghai.fcapp.run'
-const DEMO_API_KEY = 'NA'
-
 // in case document.x is not ready yet
 if (autoInit) {
 	setTimeout(() => {
-		let config: PageAgentConfig
-		let showPanel = true
+		try {
+			const llm = resolveLLMConfig({ urlSearchParams: currentScriptURL?.searchParams })
+			const language = (currentScriptURL?.searchParams.get('lang') as 'zh-CN' | 'en-US') || 'zh-CN'
+			const showPanel =
+				((currentScriptURL?.searchParams.get('showPanel') as 'true' | 'false') || 'true') === 'true'
+			const config: PageAgentConfig = { ...llm, language, memory: true, recording: true }
 
-		if (currentScriptURL) {
-			const url = currentScriptURL
-			const model = url.searchParams.get('model') || DEMO_MODEL
-			const baseURL = url.searchParams.get('baseURL') || DEMO_BASE_URL
-			const apiKey = url.searchParams.get('apiKey') || DEMO_API_KEY
-			const language = (url.searchParams.get('lang') as 'zh-CN' | 'en-US') || 'zh-CN'
-			showPanel = ((url.searchParams.get('showPanel') as 'true' | 'false') || 'true') === 'true'
-			config = { model, baseURL, apiKey, language, memory: true }
-		} else {
-			console.log('🚀 page-agent.js no current script detected, using default demo config')
-			config = {
-				model: import.meta.env.LLM_MODEL_NAME ? import.meta.env.LLM_MODEL_NAME : DEMO_MODEL,
-				baseURL: import.meta.env.LLM_BASE_URL ? import.meta.env.LLM_BASE_URL : DEMO_BASE_URL,
-				apiKey: import.meta.env.LLM_API_KEY ? import.meta.env.LLM_API_KEY : DEMO_API_KEY,
-				memory: true,
+			window.pageAgent = new PageAgent(config)
+			if (showPanel) {
+				window.pageAgent.panel.show()
 			}
-		}
 
-		// Create agent
-		window.pageAgent = new PageAgent(config)
-		if (showPanel) {
-			window.pageAgent.panel.show()
+			console.log('🚀 page-agent.js initialized with config:', {
+				model: window.pageAgent.config.model,
+				baseURL: window.pageAgent.config.baseURL,
+			})
+		} catch (error) {
+			console.error('[PageAgent] Failed to initialize:', error)
 		}
-
-		console.log('🚀 page-agent.js initialized with config:', window.pageAgent.config)
 	})
 }

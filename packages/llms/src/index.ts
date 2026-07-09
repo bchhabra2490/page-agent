@@ -1,3 +1,5 @@
+import * as z from 'zod/v4'
+
 import { OpenAIClient } from './OpenAIClient'
 import { InvokeError, InvokeErrorTypes } from './errors'
 import type {
@@ -11,6 +13,13 @@ import type {
 } from './types'
 
 export { InvokeError, InvokeErrorTypes }
+export {
+	isLegacyTestingEndpoint,
+	llmConfigMatches,
+	readBuildTimeLLMEnv,
+	resolveLLMConfig,
+	tryResolveLLMConfig,
+} from './envConfig'
 export type { InvokeOptions, InvokeResult, LLMClient, LLMConfig, Message, Tool }
 
 /**
@@ -49,6 +58,35 @@ export class LLM extends EventTarget {
 				)
 			},
 		})
+	}
+
+	/**
+	 * Single-shot text generation via a forced tool call.
+	 * Uses the same request pipeline as the agent (modelPatch, transformRequestBody, retries).
+	 */
+	async complete(messages: Message[], abortSignal: AbortSignal): Promise<string> {
+		const answerSchema = z.object({
+			text: z.string().describe('The complete answer text, ready to paste into a form field'),
+		})
+
+		const Answer: Tool<{ text: string }, string> = {
+			description: 'Return the written answer as plain text',
+			inputSchema: answerSchema,
+			execute: async (args) => args.text,
+		}
+
+		const result = await this.invoke(messages, { Answer }, abortSignal, {
+			toolChoiceName: 'Answer',
+		})
+
+		const text = (
+			typeof result.toolResult === 'string' ? result.toolResult : result.toolCall.args?.text
+		)?.trim()
+
+		if (!text) {
+			throw new InvokeError(InvokeErrorTypes.INVALID_RESPONSE, 'Completion returned empty text')
+		}
+		return text
 	}
 }
 

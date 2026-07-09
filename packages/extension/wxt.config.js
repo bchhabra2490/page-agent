@@ -1,6 +1,13 @@
 import tailwindcss from '@tailwindcss/vite'
+import { config as dotenvConfig } from 'dotenv'
 import { mkdirSync, readFileSync } from 'node:fs'
+import { dirname, resolve } from 'path'
+import { fileURLToPath } from 'url'
 import { defineConfig } from 'wxt'
+
+const __dirname = dirname(fileURLToPath(import.meta.url))
+
+dotenvConfig({ path: resolve(__dirname, '../../.env'), quiet: true })
 
 const chromeProfile = '.wxt/chrome-data'
 mkdirSync(chromeProfile, { recursive: true })
@@ -20,6 +27,9 @@ export default defineConfig({
 		plugins: [tailwindcss()],
 		define: {
 			__VERSION__: JSON.stringify(pkg.version),
+			'import.meta.env.LLM_MODEL_NAME': JSON.stringify(process.env.LLM_MODEL_NAME),
+			'import.meta.env.LLM_API_KEY': JSON.stringify(process.env.LLM_API_KEY),
+			'import.meta.env.LLM_BASE_URL': JSON.stringify(process.env.LLM_BASE_URL),
 		},
 		optimizeDeps: {
 			force: true,

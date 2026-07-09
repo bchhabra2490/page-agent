@@ -1,5 +1,5 @@
 import type { LLMConfig } from '@page-agent/llms'
-import { parseLLMConfig } from '@page-agent/llms'
+import { InvokeError, InvokeErrorTypes, LLM } from '@page-agent/llms'
 
 import type { KnowledgeEntry } from './types'
 
@@ -19,6 +19,8 @@ export async function generateAnswerFromKnowledge(
 	options: GenerateAnswerOptions = {}
 ): Promise<string> {
 	const { companyOrContext, maxWords = 200, signal } = options
+
+	console.log('generateAnswerFromKnowledge', { config, question, entries, options })
 
 	if (entries.length === 0) {
 		return 'No user knowledge available. Ask the user to add profile information first.'
@@ -40,67 +42,33 @@ Keep the answer under ${maxWords} words unless the question clearly needs more d
 		`<user_knowledge>\n${contextBlock}\n</user_knowledge>`,
 		companyOrContext ? `<context>\n${companyOrContext}\n</context>` : '',
 		`<question>\n${question}\n</question>`,
-		'Write the answer ready to paste into a form field. Output only the answer text, no preamble.',
+		'Write the answer ready to paste into a form field. Call the Answer tool with the final text only.',
 	]
 		.filter(Boolean)
 		.join('\n\n')
 
-	return completeText(
-		config,
-		[
-			{ role: 'system', content: systemPrompt },
-			{ role: 'user', content: userPrompt },
-		],
-		signal
-	)
-}
+	const llm = new LLM(config)
+	const abortSignal = signal ?? new AbortController().signal
 
-async function completeText(
-	config: LLMConfig,
-	messages: { role: 'system' | 'user' | 'assistant'; content: string }[],
-	signal?: AbortSignal
-): Promise<string> {
-	const resolved = parseLLMConfig(config)
-	signal?.throwIfAborted()
-
-	const requestBody: Record<string, unknown> = {
-		model: resolved.model,
-		messages,
-	}
-
-	if (resolved.temperature !== undefined) {
-		requestBody.temperature = resolved.temperature
-	}
-
-	const transformed = resolved.transformRequestBody(requestBody) ?? requestBody
-
-	const response = await resolved.customFetch(`${resolved.baseURL}/chat/completions`, {
-		method: 'POST',
-		headers: {
-			'Content-Type': 'application/json',
-			...(resolved.apiKey && { Authorization: `Bearer ${resolved.apiKey}` }),
-		},
-		body: JSON.stringify(transformed),
-		signal,
-	})
-
-	if (!response.ok) {
-		let message = response.statusText
-		try {
-			const data = (await response.json()) as { error?: { message?: string } }
-			message = data.error?.message ?? message
-		} catch {
-			// ignore
+	try {
+		return await llm.complete(
+			[
+				{ role: 'system', content: systemPrompt },
+				{ role: 'user', content: userPrompt },
+			],
+			abortSignal
+		)
+	} catch (error) {
+		if (error instanceof InvokeError && error.type === InvokeErrorTypes.AUTH_ERROR) {
+			throw new Error(
+				`Answer generation auth failed (${error.message}). ` +
+					'Check your API key and baseURL — the same config is used for generate_answer and the main agent.',
+				{ cause: error }
+			)
 		}
-		throw new Error(`Answer generation failed: ${message}`)
+		throw new Error(
+			`Answer generation failed: ${error instanceof Error ? error.message : String(error)}`,
+			{ cause: error }
+		)
 	}
-
-	const data = (await response.json()) as {
-		choices?: { message?: { content?: string | null } }[]
-	}
-	const content = data.choices?.[0]?.message?.content?.trim()
-	if (!content) {
-		throw new Error('Answer generation returned empty content')
-	}
-	return content
 }

@@ -14,7 +14,7 @@ import {
 import { useEffect, useState } from 'react'
 import { siGithub } from 'simple-icons'
 
-import { DEMO_BASE_URL, DEMO_MODEL, isTestingEndpoint } from '@/agent/constants'
+import { getEnvDefaultConfig, isLegacyTestingEndpoint } from '@/agent/constants'
 import type { ExtConfig, LanguagePreference } from '@/agent/useAgent'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -27,8 +27,9 @@ interface ConfigPanelProps {
 }
 
 export function ConfigPanel({ config, onSave, onClose }: ConfigPanelProps) {
-	const [baseURL, setBaseURL] = useState(config?.baseURL || DEMO_BASE_URL)
-	const [model, setModel] = useState(config?.model || DEMO_MODEL)
+	const envDefaults = getEnvDefaultConfig()
+	const [baseURL, setBaseURL] = useState(config?.baseURL || envDefaults.baseURL)
+	const [model, setModel] = useState(config?.model || envDefaults.model)
 	const [apiKey, setApiKey] = useState(config?.apiKey)
 	const [language, setLanguage] = useState<LanguagePreference>(config?.language)
 	const [maxSteps, setMaxSteps] = useState(config?.maxSteps)
@@ -52,8 +53,8 @@ export function ConfigPanel({ config, onSave, onClose }: ConfigPanelProps) {
 	const [prevConfig, setPrevConfig] = useState(config)
 	if (prevConfig !== config) {
 		setPrevConfig(config)
-		setBaseURL(config?.baseURL || DEMO_BASE_URL)
-		setModel(config?.model || DEMO_MODEL)
+		setBaseURL(config?.baseURL || envDefaults.baseURL)
+		setModel(config?.model || envDefaults.model)
 		setApiKey(config?.apiKey)
 		setLanguage(config?.language)
 		setMaxSteps(config?.maxSteps)
@@ -202,7 +203,7 @@ export function ConfigPanel({ config, onSave, onClose }: ConfigPanelProps) {
 			</div>
 
 			{/* Testing API notice */}
-			{isTestingEndpoint(baseURL) && (
+			{isLegacyTestingEndpoint(baseURL) && (
 				<div className="p-2.5 rounded-md border border-amber-500/30 bg-amber-500/5 text-[11px] text-muted-foreground leading-relaxed">
 					<Scale className="size-3 inline-block mr-1 -mt-0.5 text-amber-600" />
 					You are using our testing API. By using this you agree to the{' '}
