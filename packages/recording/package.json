@@ -1,0 +1,51 @@
+{
+    "name": "@page-agent/recording",
+    "private": false,
+    "version": "1.11.0",
+    "type": "module",
+    "main": "./src/index.ts",
+    "types": "./src/index.ts",
+    "exports": {
+        ".": {
+            "types": "./src/index.ts",
+            "default": "./src/index.ts"
+        }
+    },
+    "publishConfig": {
+        "main": "./dist/esm/page-agent-recording.js",
+        "module": "./dist/esm/page-agent-recording.js",
+        "types": "./dist/esm/index.d.ts",
+        "exports": {
+            ".": {
+                "types": "./dist/esm/index.d.ts",
+                "import": "./dist/esm/page-agent-recording.js",
+                "default": "./dist/esm/page-agent-recording.js"
+            }
+        }
+    },
+    "files": [
+        "dist/"
+    ],
+    "description": "Record user click workflows per URL for Page Agent context",
+    "keywords": [
+        "page-agent",
+        "recording",
+        "workflow"
+    ],
+    "author": "Simon<gaomeng1900>",
+    "license": "MIT",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/alibaba/page-agent.git",
+        "directory": "packages/recording"
+    },
+    "homepage": "https://alibaba.github.io/page-agent/",
+    "scripts": {
+        "build": "vite build",
+        "prepublishOnly": "node ../../scripts/pre-publish.js",
+        "postpublish": "node ../../scripts/post-publish.js"
+    },
+    "dependencies": {
+        "@page-agent/page-controller": "1.11.0"
+    }
+}
